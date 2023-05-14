@@ -3,10 +3,27 @@
 <head>
     <title>Better than TVNET</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .image-container {
+            position: relative;
+        }
+
+        .image-container::before {
+            content: none;
+        }
+
+        .grid-cols-2 > .max-w-md {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .image-container img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
-
 {% block content %}{% endblock %}
-
 </body>
 </html>

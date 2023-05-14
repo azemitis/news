@@ -29,7 +29,7 @@ class Article
     /**
      * @param int $userId
      */
-    public function setUserId(int $userId): void
+    public function setUserId(int $userId): int
     {
         $this->userId = $userId;
     }
@@ -45,7 +45,7 @@ class Article
     /**
      * @param int $id
      */
-    public function setId(int $id): void
+    public function setId(int $id): int
     {
         $this->id = $id;
     }

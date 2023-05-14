@@ -7,7 +7,7 @@ use FastRoute\Dispatcher;
 
 class Router
 {
-    public static function run(array $routes)
+    public static function run(array $routes, $controller)
     {
         $dispatcher = \FastRoute\simpleDispatcher(function (RouteCollector $router) use ($routes) {
             foreach ($routes as $route) {
@@ -30,7 +30,7 @@ class Router
 
                 [$class, $method] = $handler;
 
-                $controller = new $class();
+                $controller = $controller ?: new $class();
                 $loader = new \Twig\Loader\FilesystemLoader('../App/Views');
                 $twig = new \Twig\Environment($loader);
 
