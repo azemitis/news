@@ -1,4 +1,4 @@
-# The Rick and Morty API
+# TVNET
 
 Guidelines for installation of rickandmorty application.
 
