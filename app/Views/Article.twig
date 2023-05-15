@@ -8,13 +8,7 @@
                 <p class="text-indigo-800">Written by {{ article.author.name }}</p>
             </div>
             <div class="mb-6">
-                {% if fullSizeImage %}
-                    <img src="{{ image }}" alt="Random Image">
-                {% else %}
-                    <a href="{{ image }}">
-                        <img src="{{ image }}" alt="Random Image" class="rounded-lg">
-                    </a>
-                {% endif %}
+                <img src="{{ image }}" alt="Random Image">
             </div>
             <div class="mb-6">
                 <p class="text-lg">Article text: {{ article.body }}</p>
