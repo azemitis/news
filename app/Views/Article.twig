@@ -5,7 +5,8 @@
         <div class="max-w-3xl px-6">
             <div class="mb-6">
                 <h1 class="text-5xl font-bold pb-5">{{ article.title | capitalize }}</h1>
-                <p class="text-indigo-800">Written by <a href="/user/{{ article.userId }}">{{ article.user.name }}</a></p>
+                <p class="text-indigo-800">Written by <a href="/user/{{ article.userId }}">
+                        {{ article.user.name }}</a></p>
             </div>
             <div class="mb-6">
                 <img src="{{ image }}" alt="Random Image">

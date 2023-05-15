@@ -160,4 +160,55 @@ class HomeController
             return new View('Error', ['message' => $errorMessage]);
         }
     }
+
+    public function user(Environment $twig, array $vars): View
+    {
+        $userId = (int) $vars['id'];
+
+        try {
+            // Fetch user
+            $userUrl = "https://jsonplaceholder.typicode.com/users/{$userId}";
+            $userResponse = $this->httpClient->get($userUrl);
+            $userBody = $userResponse->getBody()->getContents();
+            $userData = json_decode($userBody, true);
+
+            // Create user object
+            $userId = $userData['id'];
+            $userName = $userData['name'];
+            $userUsername = $userData['username'];
+            $userEmail = $userData['email'];
+
+            $userObject = new User($userId, $userName, $userUsername, $userEmail);
+
+            // Fetch articles
+            $url = 'https://jsonplaceholder.typicode.com/posts';
+            $response = $this->httpClient->get($url);
+            $body = $response->getBody()->getContents();
+            $data = json_decode($body, true);
+
+            // Create article objects for the user
+            $articles = [];
+            foreach ($data as $article) {
+                if ($article['userId'] === $userId) {
+                    $id = $article['id'];
+                    $title = $article['title'];
+                    $body = $article['body'];
+
+                    $articleObject = new Article($userId, $id, $title, $body, $userObject);
+                    $articles[] = $articleObject;
+                }
+            }
+
+            // Render Twig template
+            return new View('User', [
+                'author' => $userObject,
+                'articles' => $articles,
+            ]);
+
+        } catch (GuzzleException $exception) {
+            $errorMessage = 'Error fetching user data: ' . $exception->getMessage();
+
+            return new View('Error', ['message' => $errorMessage]);
+        }
+    }
 }

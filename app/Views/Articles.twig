@@ -24,7 +24,8 @@
                                 </a>
                             </h2>
                             <p class="text text-gray-200 p-2">{{ article.body | capitalize }}</p>
-                            <p class="text-l text-indigo-200 text-right p-3">Written by: {{ article.user.name }}</p>
+                            <p class="text-l text-indigo-200 text-right p-3">
+                                Written by <a href="/user/{{ article.userId }}">{{ article.user.name }}</a></p>
                         </div>
                     </div>
                 </div>
