@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Cache;
 use App\Models\Article;
-use App\Models\Author;
+use App\Models\User;
 use App\Models\Comment;
 use App\Views\View;
 use GuzzleHttp\Client;
@@ -49,22 +49,22 @@ class HomeController
             $body = $response->getBody()->getContents();
             $data = json_decode($body, true);
 
-            // Fetch authors
-            $authorUrl = 'https://jsonplaceholder.typicode.com/users';
-            $authorResponse = $this->httpClient->get($authorUrl);
-            $authorBody = $authorResponse->getBody()->getContents();
-            $authorData = json_decode($authorBody, true);
+            // Fetch users
+            $userUrl = 'https://jsonplaceholder.typicode.com/users';
+            $userResponse = $this->httpClient->get($userUrl);
+            $userBody = $userResponse->getBody()->getContents();
+            $userData = json_decode($userBody, true);
 
-            // Create author objects
-            $authors = [];
-            foreach ($authorData as $authorItem) {
-                $authorId = $authorItem['id'];
-                $authorName = $authorItem['name'];
-                $authorUsername = $authorItem['username'];
-                $authorEmail = $authorItem['email'];
+            // Create user objects
+            $users = [];
+            foreach ($userData as $userItem) {
+                $userId = $userItem['id'];
+                $userName = $userItem['name'];
+                $userUsername = $userItem['username'];
+                $userEmail = $userItem['email'];
 
-                $authorObject = new Author($authorId, $authorName, $authorUsername, $authorEmail);
-                $authors[$authorId] = $authorObject;
+                $userObject = new User($userId, $userName, $userUsername, $userEmail);
+                $users[$userId] = $userObject;
             }
 
             // Create article objects
@@ -75,10 +75,10 @@ class HomeController
                 $title = $article['title'];
                 $body = $article['body'];
 
-                // Get author of the article by ID
-                $author = $authors[$userId];
+                // Get user of the article by ID
+                $user = $users[$userId];
 
-                $articleObject = new Article($userId, $id, $title, $body, $author);
+                $articleObject = new Article($userId, $id, $title, $body, $user);
                 $articles[] = $articleObject;
             }
 

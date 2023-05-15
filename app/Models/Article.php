@@ -8,15 +8,15 @@ class Article
     private int $id;
     private string $title;
     private string $body;
-    private Author $author;
+    private User $user;
 
-    public function __construct(int $userId, int $id, string $title, string $body, Author $author)
+    public function __construct(int $userId, int $id, string $title, string $body, User $user)
     {
         $this->userId = $userId;
         $this->id = $id;
         $this->title = $title;
         $this->body = $body;
-        $this->author = $author;
+        $this->user = $user;
     }
 
     public function getUserId(): int
@@ -39,8 +39,8 @@ class Article
         return $this->body;
     }
 
-    public function getAuthor(): Author
+    public function getUser(): User
     {
-        return $this->author;
+        return $this->user;
     }
 }

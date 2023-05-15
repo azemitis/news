@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class Author
+class User
 {
     private int $id;
     private string $name;
