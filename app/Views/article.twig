@@ -4,23 +4,29 @@
     <div class="flex justify-center py-20">
         <div class="max-w-3xl px-6">
             <div class="mb-6">
-                <h1 class="text-5xl font-bold pb-5">{{ article.getTitle() }}</h1>
-                <p class="text-indigo-800">Written by {{ article.getAuthor().getName() }}</p>
+                <h1 class="text-5xl font-bold pb-5">{{ article.title | capitalize }}</h1>
+                <p class="text-indigo-800">Written by {{ article.author.name }}</p>
             </div>
             <div class="mb-6">
-                <img src="{{ image }}" alt="Random Image" class="w-full rounded-lg">
+                {% if fullSizeImage %}
+                    <img src="{{ image }}" alt="Random Image">
+                {% else %}
+                    <a href="{{ image }}">
+                        <img src="{{ image }}" alt="Random Image" class="rounded-lg">
+                    </a>
+                {% endif %}
             </div>
             <div class="mb-6">
-                <p class="text-lg">Article text: {{ article.getBody() }}</p>
+                <p class="text-lg">Article text: {{ article.body }}</p>
             </div>
             <div>
                 <h2 class="text-xl font-bold mb-4">Comments</h2>
                 <ul>
                     {% for comment in comments %}
                         <li class="mb-4">
-                            <p class="text-gray-800">{{ comment.getName() }}</p>
-                            <p class="text-gray-600 font-bold">User {{ comment.getId() }} {{ comment.getEmail() }}</p>
-                            <p class="text-gray-700">{{ comment.getBody() }}</p>
+                            <p class="text-gray-800">{{ comment.name }}</p>
+                            <p class="text-gray-600 font-bold">User {{ comment.id }} {{ comment.email }}</p>
+                            <p class="text-gray-700">{{ comment.body | capitalize }}</p>
                         </li>
                     {% endfor %}
                 </ul>

@@ -19,16 +19,16 @@ class HomeController
     {
         $this->httpClient = $httpClient;
     }
-    public function getRandomImages(int $count): array
+    public function getRandomImages(int $count, bool $useOriginalSize = false): array
     {
         $images = [];
 
-        $sizes = ['400x200', '400x300', '300x200'];
+        $sizes = ['600x500', '600x700', '500x600'];
         $colors = ['orange', 'cyan', 'green'];
         $texts = ['Hello from Riga', 'Hello from Latvia', 'Hello from Europe'];
 
         for ($i = 0; $i < $count; $i++) {
-            $size = $sizes[array_rand($sizes)];
+            $size = $useOriginalSize ? 'original' : $sizes[array_rand($sizes)];
             $color = $colors[array_rand($colors)];
             $text = $texts[array_rand($texts)];
 
@@ -123,7 +123,7 @@ class HomeController
         }
     }
 
-    public function article(Environment $twig, array $vars): View
+    public function article(Environment $twig, array $vars, bool $fullSizeImage = true): View
     {
         $articleId = (int) $vars['id'];
 
@@ -138,18 +138,21 @@ class HomeController
                 }
             }
 
-            // Get random image
-            $image = $this->getRandomImages(1)[0];
+            // Get random images
+            $images = $this->getRandomImages(1);
+            $image = $images[0];
 
             // Get comments for the article
             $comments = $this->getComments($articleId);
 
-            // Render Twig template
+            // Render Twig template with full size image
             return new View('article', [
                 'article' => $article,
                 'image' => $image,
                 'comments' => $comments,
+                'fullSizeImage' => $fullSizeImage,
             ]);
+
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
 
