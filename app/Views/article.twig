@@ -1,0 +1,28 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <div class="flex pt-10 pb-10 items-center justify-center">
+        <div class="bg-white p-8 rounded-lg" style="height: 25vh;">
+            <h1 class="text-8xl text-gray-700 font-bold text-center">Better Than TVNET</h1>
+        </div>
+    </div>
+
+    <div class="flex justify-center">
+        <div class="grid grid-cols-1 gap-6 bg-gray-600 py-10 px-5">
+            <div class="max-w-md w-full mx-auto">
+                <div class="image-container">
+                    <img src="{{ image }}" alt="Random Image" class="mx-auto mb-4">
+                    <div class="image-overlay">
+                        <h2 class="text-2xl text-white font-bold text-center pb-5">
+                            {{ article.title }} ({{ article.id }})
+                        </h2>
+                        <p class="text-l text-gray-200 p-2">{{ article.body }}</p>
+                        <p class="text-l text-indigo-300 text-right p-3">Written by: {{ article.userId }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="h-16 bg-white"></div>
+{% endblock %}

@@ -14,10 +14,14 @@
             {% for article in articles %}
                 <div class="max-w-md w-full mx-auto">
                     <div class="image-container">
-                        <img src="{{ images[loop.index0] }}" alt="Random Image" class="mx-auto mb-4">
+                        <a href="/article/{{ article.id }}">
+                            <img src="{{ images[loop.index0] }}" alt="Random Image" class="mx-auto mb-4">
+                        </a>
                         <div class="image-overlay">
                             <h2 class="text-2xl text-white font-bold text-center pb-5">
-                                {{ article.title }} ({{ article.id }})
+                                <a href="/article/{{ article.id }}" class="text-white">
+                                    {{ article.title }} ({{ article.id }})
+                                </a>
                             </h2>
                             <p class="text-l text-gray-200 p-2">{{ article.body }}</p>
                             <p class="text-l text-indigo-300 text-right p-3">Written by: {{ article.userId }}</p>

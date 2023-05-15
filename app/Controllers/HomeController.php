@@ -41,12 +41,14 @@ class HomeController
     public function articles(Environment $twig, array $vars): View
     {
         try {
+            // Fetch article
             $url = 'https://jsonplaceholder.typicode.com/posts';
 
             $response = $this->httpClient->get($url);
             $body = $response->getBody()->getContents();
             $data = json_decode($body, true);
 
+            // Create article object
             $articles = [];
             foreach ($data as $article) {
                 $userId = $article['userId'];
@@ -58,11 +60,48 @@ class HomeController
                 $articles[] = $articleObject;
             }
 
+            // Get random image
             $images = $this->getRandomImages(count($articles));
 
+            // Render Twig template
             return new View('Articles', [
                 'articles' => $articles,
                 'images' => $images,
+            ]);
+        } catch (GuzzleException $exception) {
+            $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
+
+            return new View('Error', ['message' => $errorMessage]);
+        }
+    }
+
+    public function article(Environment $twig, array $vars): View
+    {
+        $articleId = $vars['id'];
+
+        try {
+            // Fetch article
+            $url = "https://jsonplaceholder.typicode.com/posts/{$articleId}";
+
+            $response = $this->httpClient->get($url);
+            $body = $response->getBody()->getContents();
+            $data = json_decode($body, true);
+
+            // Create article object
+            $userId = $data['userId'];
+            $id = $data['id'];
+            $title = $data['title'];
+            $body = $data['body'];
+
+            $article = new Article($userId, $id, $title, $body);
+
+            // Get random image
+            $image = $this->getRandomImages(1)[0];
+
+            // Render Twig template
+            return new View('article', [
+                'article' => $article,
+                'image' => $image,
             ]);
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
