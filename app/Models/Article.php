@@ -8,77 +8,39 @@ class Article
     private int $id;
     private string $title;
     private string $body;
+    private Author $author;
 
-    public function __construct(int $userId, int $id, string $title, string $body)
-        {
+    public function __construct(int $userId, int $id, string $title, string $body, Author $author)
+    {
+        $this->userId = $userId;
+        $this->id = $id;
+        $this->title = $title;
+        $this->body = $body;
+        $this->author = $author;
+    }
 
-            $this->userId = $userId;
-            $this->id = $id;
-            $this->title = $title;
-            $this->body = $body;
-        }
-
-    /**
-     * @return int
-     */
     public function getUserId(): int
     {
         return $this->userId;
     }
 
-    /**
-     * @param int $userId
-     */
-    public function setUserId(int $userId): int
-    {
-        $this->userId = $userId;
-    }
-
-    /**
-     * @return int
-     */
     public function getId(): int
     {
         return $this->id;
     }
 
-    /**
-     * @param int $id
-     */
-    public function setId(int $id): int
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * @return string
-     */
     public function getTitle(): string
     {
         return $this->title;
     }
 
-    /**
-     * @param string $title
-     */
-    public function setTitle(string $title): void
-    {
-        $this->title = $title;
-    }
-
-    /**
-     * @return string
-     */
     public function getBody(): string
     {
         return $this->body;
     }
 
-    /**
-     * @param string $body
-     */
-    public function setBody(string $body): void
+    public function getAuthor(): Author
     {
-        $this->body = $body;
+        return $this->author;
     }
 }

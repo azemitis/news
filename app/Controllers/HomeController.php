@@ -4,7 +4,8 @@ namespace App\Controllers;
 
 use App\Cache;
 use App\Models\Article;
-//use App\Models\Author;
+use App\Models\Author;
+use App\Models\Comment;
 use App\Views\View;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -41,14 +42,31 @@ class HomeController
     public function articles(Environment $twig, array $vars): View
     {
         try {
-            // Fetch article
+            // Fetch articles
             $url = 'https://jsonplaceholder.typicode.com/posts';
-
             $response = $this->httpClient->get($url);
             $body = $response->getBody()->getContents();
             $data = json_decode($body, true);
 
-            // Create article object
+            // Fetch authors
+            $authorUrl = 'https://jsonplaceholder.typicode.com/users';
+            $authorResponse = $this->httpClient->get($authorUrl);
+            $authorBody = $authorResponse->getBody()->getContents();
+            $authorData = json_decode($authorBody, true);
+
+            // Create author objects
+            $authors = [];
+            foreach ($authorData as $authorItem) {
+                $authorId = $authorItem['id'];
+                $authorName = $authorItem['name'];
+                $authorUsername = $authorItem['username'];
+                $authorEmail = $authorItem['email'];
+
+                $authorObject = new Author($authorId, $authorName, $authorUsername, $authorEmail);
+                $authors[$authorId] = $authorObject;
+            }
+
+            // Create article objects
             $articles = [];
             foreach ($data as $article) {
                 $userId = $article['userId'];
@@ -56,11 +74,14 @@ class HomeController
                 $title = $article['title'];
                 $body = $article['body'];
 
-                $articleObject = new Article($userId, $id, $title, $body);
+                // Get author of the article by ID
+                $author = $authors[$userId];
+
+                $articleObject = new Article($userId, $id, $title, $body, $author);
                 $articles[] = $articleObject;
             }
 
-            // Get random image
+            // Get random images
             $images = $this->getRandomImages(count($articles));
 
             // Render Twig template
@@ -75,33 +96,59 @@ class HomeController
         }
     }
 
-    public function article(Environment $twig, array $vars): View
+    public function getComments(int $articleId): array
     {
-        $articleId = $vars['id'];
+        $url = "https://jsonplaceholder.typicode.com/comments?postId={$articleId}";
 
         try {
-            // Fetch article
-            $url = "https://jsonplaceholder.typicode.com/posts/{$articleId}";
-
             $response = $this->httpClient->get($url);
             $body = $response->getBody()->getContents();
             $data = json_decode($body, true);
 
-            // Create article object
-            $userId = $data['userId'];
-            $id = $data['id'];
-            $title = $data['title'];
-            $body = $data['body'];
+            $comments = [];
+            foreach ($data as $comment) {
+                $id = $comment['id'];
+                $postId = $comment['postId'];
+                $name = $comment['name'];
+                $email = $comment['email'];
+                $body = $comment['body'];
 
-            $article = new Article($userId, $id, $title, $body);
+                $commentObject = new Comment($id, $postId, $name, $email, $body);
+                $comments[] = $commentObject;
+            }
+
+            return $comments;
+        } catch (GuzzleException $exception) {
+            return [];
+        }
+    }
+
+    public function article(Environment $twig, array $vars): View
+    {
+        $articleId = (int) $vars['id'];
+
+        try {
+            $articles = $this->articles($twig, $vars)->getData()['articles'];
+
+            $article = null;
+            foreach ($articles as $item) {
+                if ($item->getId() == $articleId) {
+                    $article = $item;
+                    break;
+                }
+            }
 
             // Get random image
             $image = $this->getRandomImages(1)[0];
+
+            // Get comments for the article
+            $comments = $this->getComments($articleId);
 
             // Render Twig template
             return new View('article', [
                 'article' => $article,
                 'image' => $image,
+                'comments' => $comments,
             ]);
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
