@@ -1,27 +1,36 @@
 {% extends 'layout.twig' %}
 
 {% block content %}
-    <div class="flex justify-center py-20">
+    <div class="flex justify-center py-10">
         <div class="max-w-3xl px-6">
-            <div class="mb-6">
-                <h1 class="text-5xl font-bold pb-5">{{ article.title | capitalize }}</h1>
-                <p class="text-indigo-800">Written by <a href="/user/{{ article.userId }}">
-                        {{ article.user.name }}</a></p>
+            <div class="mb-10">
+                <h1 class="text-5xl font-bold pb-4">{{ article.title | capitalize }}</h1>
+                <p class="text-indigo-800">Written by <a href="/user/{{ article.user.getId() }}">
+                        <strong>{{ article.user.getName() }}</strong></a></p>
             </div>
-            <div class="mb-6">
-                <img src="{{ image }}" alt="Random Image">
+            <div class="mb-10">
+                <img src="{{ image }}" alt="Random Image" class="rounded-lg">
             </div>
-            <div class="mb-6">
-                <p class="text-lg">Article text: {{ article.body }}</p>
+            <div class="mb-10">
+                <p class="text-lg">{{ article.body | capitalize  }}</p>
             </div>
             <div>
-                <h2 class="text-xl font-bold mb-4">Comments</h2>
-                <ul>
+                <h2 class="text-2xl font-bold mb-6">Comments</h2>
+                <ul class="space-y-6">
                     {% for comment in comments %}
-                        <li class="mb-4">
-                            <p class="text-gray-800">{{ comment.name }}</p>
-                            <p class="text-gray-600 font-bold">User {{ comment.id }} {{ comment.email }}</p>
-                            <p class="text-gray-700">{{ comment.body | capitalize }}</p>
+                        <li>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <img src="https://placehold.it/80x80" alt="Profile Image" class="h-8 w-8 rounded-full">
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-gray-800 font-semibold">- <strong>{{ comment.name | capitalize }}</strong></p>
+                                    <p class="text-gray-600">
+                                        By <a href="/user/{{ comment.user.getId() }}" class="text-indigo-800 font-semibold">{{ comment.user.getName() }}</a>
+                                        - {{ comment.user.getEmail() }}</p>
+                                    <p class="text-gray-700">{{ comment.body | capitalize }}</p>
+                                </div>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>

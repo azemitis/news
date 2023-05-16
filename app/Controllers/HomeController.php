@@ -89,6 +89,7 @@ class HomeController
             return new View('Articles', [
                 'articles' => $articles,
                 'images' => $images,
+                'users' => $users
             ]);
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
@@ -97,7 +98,7 @@ class HomeController
         }
     }
 
-    public function getComments(int $articleId): array
+    public function getComments(int $articleId, array $articles, array $users): array
     {
         $url = "https://jsonplaceholder.typicode.com/comments?postId={$articleId}";
 
@@ -106,15 +107,29 @@ class HomeController
             $body = $response->getBody()->getContents();
             $data = json_decode($body, true);
 
+            // Get 10 users who created the articles for replacement
+            $articleUsers = array_slice($users, 0, 10);
+
             $comments = [];
             foreach ($data as $comment) {
                 $id = $comment['id'];
                 $postId = $comment['postId'];
                 $name = $comment['name'];
-                $email = $comment['email'];
                 $body = $comment['body'];
 
-                $commentObject = new Comment($id, $postId, $name, $email, $body);
+                // Randomly select a user from the 10 article users
+                $user = $articleUsers[array_rand($articleUsers)];
+
+                // Find the article with the matching ID
+                $article = null;
+                foreach ($articles as $item) {
+                    if ($item->getId() == $postId) {
+                        $article = $item;
+                        break;
+                    }
+                }
+
+                $commentObject = new Comment($id, $postId, $name, $body, $article, $user);
                 $comments[] = $commentObject;
             }
 
@@ -124,12 +139,13 @@ class HomeController
         }
     }
 
-    public function article(Environment $twig, array $vars, bool $fullSizeImage = true): View
+    public function article(Environment $twig, array $vars): View
     {
         $articleId = (int) $vars['id'];
 
         try {
             $articles = $this->articles($twig, $vars)->getData()['articles'];
+            $users = $this->articles($twig, $vars)->getData()['users'];
 
             $article = null;
             foreach ($articles as $item) {
@@ -144,14 +160,14 @@ class HomeController
             $image = $images[0];
 
             // Get comments for the article
-            $comments = $this->getComments($articleId);
+            $comments = $this->getComments($articleId, $articles, $users);
 
-            // Render Twig template with full size image
+            // Render Twig template
             return new View('article', [
                 'article' => $article,
                 'image' => $image,
                 'comments' => $comments,
-                'fullSizeImage' => $fullSizeImage,
+                'users' => $users
             ]);
 
         } catch (GuzzleException $exception) {
