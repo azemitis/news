@@ -116,48 +116,60 @@ class HomeController
 
     public function getComments(int $articleId, array $articles, array $users): array
     {
-        $url = "https://jsonplaceholder.typicode.com/comments?postId={$articleId}";
+        $cacheKey = 'comments_' . $articleId;
 
-        try {
-            $response = $this->httpClient->get($url);
-            $body = $response->getBody()->getContents();
-            $data = json_decode($body, true);
+        if (Cache::has($cacheKey)) {
+            $comments = Cache::get($cacheKey);
+            var_dump("Cached comments for article (ID: $articleId) used.");
+        } else {
+            $url = "https://jsonplaceholder.typicode.com/comments?postId={$articleId}";
 
-            // Get 10 users who created the articles for replacement
-            $articleUsers = array_slice($users, 0, 10);
+            try {
+                $response = $this->httpClient->get($url);
+                $body = $response->getBody()->getContents();
+                $data = json_decode($body, true);
 
-            $comments = [];
-            foreach ($data as $comment) {
-                $id = $comment['id'];
-                $postId = $comment['postId'];
-                $name = $comment['name'];
-                $body = $comment['body'];
+                // Get 10 users who created the articles for replacement
+                $articleUsers = array_slice($users, 0, 10);
 
-                // Randomly select a user from the 10 article users
-                $user = $articleUsers[array_rand($articleUsers)];
+                $comments = [];
+                foreach ($data as $comment) {
+                    $id = $comment['id'];
+                    $postId = $comment['postId'];
+                    $name = $comment['name'];
+                    $body = $comment['body'];
 
-                // Find the article with the matching ID
-                $article = null;
-                foreach ($articles as $item) {
-                    if ($item->getId() == $postId) {
-                        $article = $item;
-                        break;
+                    // Randomly select a user from the 10 article users
+                    $user = $articleUsers[array_rand($articleUsers)];
+
+                    // Find the article with the matching ID
+                    $article = null;
+                    foreach ($articles as $item) {
+                        if ($item->getId() == $postId) {
+                            $article = $item;
+                            break;
+                        }
                     }
+
+                    $commentObject = new Comment($id, $postId, $name, $body, $article, $user);
+                    $comments[] = $commentObject;
                 }
 
-                $commentObject = new Comment($id, $postId, $name, $body, $article, $user);
-                $comments[] = $commentObject;
-            }
+                // Cache the comments
+                Cache::remember($cacheKey, $comments, 20);
+                var_dump("API request made for comments of article (ID: $articleId).");
 
-            return $comments;
-        } catch (GuzzleException $exception) {
-            return [];
+            } catch (GuzzleException $exception) {
+                $comments = [];
+            }
         }
+
+        return $comments;
     }
 
     public function article(Environment $twig, array $vars): View
     {
-        $articleId = (int) $vars['id'];
+        $articleId = (int)$vars['id'];
 
         try {
             // Fetch articles and users
@@ -184,8 +196,19 @@ class HomeController
                 $images = $this->getRandomImages(1);
                 $image = $images[0];
 
-                // Get comments for the article
-                $comments = $this->getComments($articleId, $articles, $users);
+                // Check if there is a cached version of the comments
+                $commentsCacheKey = 'comments_' . $articleId;
+                if (Cache::has($commentsCacheKey)) {
+                    $comments = Cache::get($commentsCacheKey);
+                    var_dump("Cached comments for article (ID: $articleId) used.");
+                } else {
+                    // Get comments for the article
+                    $comments = $this->getComments($articleId, $articles, $users);
+
+                    // Cache the comments
+                    Cache::remember($commentsCacheKey, $comments, 20);
+                    var_dump("API request made for comments of article (ID: $articleId).");
+                }
 
                 // Render Twig template
                 $viewData = [
