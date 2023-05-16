@@ -250,7 +250,14 @@ class HomeController
                 $name = $comment['name'];
                 $body = $comment['body'];
 
-                $article = $articles[$postId] ?? null;
+                $article = null;
+                foreach ($articles as $item) {
+                    if ($item->getId() == $postId) {
+                        $article = $item;
+                        break;
+                    }
+                }
+
                 $user = $users[$userId] ?? null;
 
                 if ($article !== null && $user !== null) {

@@ -31,8 +31,8 @@
                 <ul class="space-y-4">
                     {% for comment in comments %}
                         <li>
-                            <h3 class="text-lg">
-                                {{ comment.name }}
+                            <h3 class="text-lg text-gray-700">
+                                <a href="/article/{{ comment.article.getId() }}#comment{{ comment.id }}">{{ comment.name }}</a>
                             </h3>
                         </li>
                     {% endfor %}
