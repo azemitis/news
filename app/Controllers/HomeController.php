@@ -51,21 +51,23 @@ class HomeController
             $data = json_decode($body, true);
 
             // Fetch users
-            $userUrl = 'https://jsonplaceholder.typicode.com/users';
-            $userResponse = $this->httpClient->get($userUrl);
-            $userBody = $userResponse->getBody()->getContents();
-            $userData = json_decode($userBody, true);
+            if (empty($this->users)) {
+                $userUrl = 'https://jsonplaceholder.typicode.com/users';
+                $userResponse = $this->httpClient->get($userUrl);
+                $userBody = $userResponse->getBody()->getContents();
+                $userData = json_decode($userBody, true);
 
-            // Create user objects
-            $users = [];
-            foreach ($userData as $userItem) {
-                $userId = $userItem['id'];
-                $userName = $userItem['name'];
-                $userUsername = $userItem['username'];
-                $userEmail = $userItem['email'];
+                // Create user objects and cache individually
+                $this->users = [];
+                foreach ($userData as $userItem) {
+                    $userId = $userItem['id'];
+                    $userName = $userItem['name'];
+                    $userUsername = $userItem['username'];
+                    $userEmail = $userItem['email'];
 
-                $userObject = new User($userId, $userName, $userUsername, $userEmail);
-                $users[$userId] = $userObject;
+                    $userObject = new User($userId, $userName, $userUsername, $userEmail);
+                    $this->users[$userId] = $userObject;
+                }
             }
 
             // Create article objects and cache individually
@@ -79,20 +81,20 @@ class HomeController
                 if (Cache::has($cacheKey)) {
                     $cachedArticle = Cache::get($cacheKey);
                     $articles[$id] = $cachedArticle;
-                    var_dump("Cached article (ID: $id) used.");
+//                    var_dump("Cached article (ID: $id) used.");
                 } else {
                     $userId = $article['userId'];
                     $title = $article['title'];
                     $body = $article['body'];
 
                     // Get user of the article by ID
-                    $user = $users[$userId];
+                    $user = $this->users[$userId];
 
                     $articleObject = new Article($userId, $id, $title, $body, $user);
 
                     Cache::remember($cacheKey, $articleObject, 20);
                     $articles[$id] = $articleObject;
-                    var_dump("API request made for article (ID: $id).");
+//                    var_dump("API request made for article (ID: $id).");
                 }
             }
 
@@ -103,7 +105,7 @@ class HomeController
             return new View('Articles', [
                 'articles' => $articles,
                 'images' => $images,
-                'users' => $users
+                'users' => $this->users
             ]);
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
@@ -158,11 +160,10 @@ class HomeController
         $articleId = (int) $vars['id'];
 
         try {
-            // Fetch articles
-            $articles = $this->articles($twig, $vars)->getData()['articles'];
-
-            // Fetch users
-            $users = $this->articles($twig, $vars)->getData()['users'];
+            // Fetch articles and users
+            $articlesData = $this->articles($twig, $vars)->getData();
+            $articles = $articlesData['articles'];
+            $users = $articlesData['users'];
 
             $article = null;
             foreach ($articles as $item) {
@@ -226,56 +227,69 @@ class HomeController
     {
         $userId = (int) $vars['id'];
 
-        try {
-            // Fetch user
-            $userUrl = "https://jsonplaceholder.typicode.com/users/{$userId}";
-            $userResponse = $this->httpClient->get($userUrl);
-            $userBody = $userResponse->getBody()->getContents();
-            $userData = json_decode($userBody, true);
+        // Check if the user object is cached
+        $cacheKey = 'user_' . $userId;
+        if (Cache::has($cacheKey)) {
+            $userObject = Cache::get($cacheKey);
+            $users = [$userId => $userObject];
+            var_dump("Cached user (ID: $userId) used.");
+        } else {
+            try {
+                // Fetch user
+                $userUrl = "https://jsonplaceholder.typicode.com/users/{$userId}";
+                $userResponse = $this->httpClient->get($userUrl);
+                $userBody = $userResponse->getBody()->getContents();
+                $userData = json_decode($userBody, true);
 
-            // Create user object
-            $userId = $userData['id'];
-            $userName = $userData['name'];
-            $userUsername = $userData['username'];
-            $userEmail = $userData['email'];
+                // Create user object
+                $userName = $userData['name'];
+                $userUsername = $userData['username'];
+                $userEmail = $userData['email'];
 
-            $userObject = new User($userId, $userName, $userUsername, $userEmail);
+                $userObject = new User($userId, $userName, $userUsername, $userEmail);
 
-            // Fetch articles
-            $url = 'https://jsonplaceholder.typicode.com/posts';
-            $response = $this->httpClient->get($url);
-            $body = $response->getBody()->getContents();
-            $data = json_decode($body, true);
+                // Cache the user object
+                Cache::remember($cacheKey, $userObject, 20);
 
-            // Create article objects for the user
-            $articles = [];
-            foreach ($data as $article) {
-                if ($article['userId'] === $userId) {
-                    $id = $article['id'];
-                    $title = $article['title'];
-                    $body = $article['body'];
+                $users = [$userId => $userObject];
+                var_dump("API request made for user (ID: $userId).");
 
-                    $articleObject = new Article($userId, $id, $title, $body, $userObject);
-                    $articles[] = $articleObject;
-                }
+            } catch (GuzzleException $exception) {
+                $errorMessage = 'Error fetching user data: ' . $exception->getMessage();
+
+                return new View('Error', ['message' => $errorMessage]);
             }
-
-            // Fetch comments for the user
-            $comments = $this->getCommentsByUser($userId, $articles, $this->articles($twig, $vars)->getData()['users']);
-
-            // Render Twig template
-            return new View('User', [
-                'author' => $userObject,
-                'articles' => $articles,
-                'comments' => $comments,
-                'users' => $this->articles($twig, $vars)->getData()['users']
-            ]);
-
-        } catch (GuzzleException $exception) {
-            $errorMessage = 'Error fetching user data: ' . $exception->getMessage();
-
-            return new View('Error', ['message' => $errorMessage]);
         }
+
+        // Fetch articles
+        $url = 'https://jsonplaceholder.typicode.com/posts';
+        $response = $this->httpClient->get($url);
+        $body = $response->getBody()->getContents();
+        $data = json_decode($body, true);
+
+        // Create article objects for the user
+        $articles = [];
+        foreach ($data as $article) {
+            if ($article['userId'] === $userId) {
+                $id = $article['id'];
+                $title = $article['title'];
+                $body = $article['body'];
+
+                $articleObject = new Article($userId, $id, $title, $body, $userObject);
+                $articles[] = $articleObject;
+            }
+        }
+
+        // Fetch comments for the user
+        $comments = $this->getCommentsByUser($userId, $articles, $users);
+
+        // Render Twig template
+        return new View('User', [
+            'author' => $userObject,
+            'articles' => $articles,
+            'comments' => $comments,
+            'users' => $users
+        ]);
     }
 
     public function getCommentsByUser(int $userId, array $articles, array $users): array
