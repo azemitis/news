@@ -68,19 +68,32 @@ class HomeController
                 $users[$userId] = $userObject;
             }
 
-            // Create article objects
+            // Create article objects and cache individually
             $articles = [];
+
+            // Check if there is cached data for each article
             foreach ($data as $article) {
-                $userId = $article['userId'];
                 $id = $article['id'];
-                $title = $article['title'];
-                $body = $article['body'];
+                $cacheKey = 'article_' . $id;
 
-                // Get user of the article by ID
-                $user = $users[$userId];
+                if (Cache::has($cacheKey)) {
+                    $cachedArticle = Cache::get($cacheKey);
+                    $articles[$id] = $cachedArticle;
+                    var_dump("Cached article (ID: $id) used.");
+                } else {
+                    $userId = $article['userId'];
+                    $title = $article['title'];
+                    $body = $article['body'];
 
-                $articleObject = new Article($userId, $id, $title, $body, $user);
-                $articles[] = $articleObject;
+                    // Get user of the article by ID
+                    $user = $users[$userId];
+
+                    $articleObject = new Article($userId, $id, $title, $body, $user);
+
+                    Cache::remember($cacheKey, $articleObject, 20);
+                    $articles[$id] = $articleObject;
+                    var_dump("API request made for article (ID: $id).");
+                }
             }
 
             // Get random images
