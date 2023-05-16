@@ -6,7 +6,7 @@ Guidelines for installation of rickandmorty application.
 
    git clone -b https://github.com/azemitis/tvnet.git
 
-2. Navigate to folder rickandmorty:
+2. Navigate to folder tvnet:
 
    cd tvnet
 
