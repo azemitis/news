@@ -158,7 +158,10 @@ class HomeController
         $articleId = (int) $vars['id'];
 
         try {
+            // Fetch articles
             $articles = $this->articles($twig, $vars)->getData()['articles'];
+
+            // Fetch users
             $users = $this->articles($twig, $vars)->getData()['users'];
 
             $article = null;
@@ -167,6 +170,34 @@ class HomeController
                     $article = $item;
                     break;
                 }
+            }
+
+            // Check if there is a cached version of the article
+            $cacheKey = 'article_' . $articleId;
+            if (Cache::has($cacheKey)) {
+                $cachedArticle = Cache::get($cacheKey);
+                $article = $cachedArticle;
+                var_dump("Cached article (ID: $articleId) used.");
+            } else {
+                // Get random images
+                $images = $this->getRandomImages(1);
+                $image = $images[0];
+
+                // Get comments for the article
+                $comments = $this->getComments($articleId, $articles, $users);
+
+                // Render Twig template
+                $viewData = [
+                    'article' => $article,
+                    'image' => $image,
+                    'comments' => $comments,
+                    'users' => $users
+                ];
+
+                // Cache the article
+                Cache::remember($cacheKey, $article, 20);
+
+                return new View('article', $viewData);
             }
 
             // Get random images

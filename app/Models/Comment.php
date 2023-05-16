@@ -42,10 +42,10 @@ class Comment
         return $this->name;
     }
 
-    public function getEmail(): string
-    {
-        return $this->email;
-    }
+//    public function getEmail(): string
+//    {
+//        return $this->email;
+//    }
 
     public function getBody(): string
     {
