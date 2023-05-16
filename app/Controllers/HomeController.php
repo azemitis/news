@@ -14,6 +14,7 @@ use Twig\Environment;
 class HomeController
 {
     private Client $httpClient;
+//    private array $users = [];
 
     public function __construct(Client $httpClient)
     {
@@ -215,16 +216,52 @@ class HomeController
                 }
             }
 
+            // Fetch comments for the user
+            $comments = $this->getCommentsByUser($userId, $articles, $this->articles($twig, $vars)->getData()['users']);
+
             // Render Twig template
             return new View('User', [
                 'author' => $userObject,
                 'articles' => $articles,
+                'comments' => $comments,
+                'users' => $this->articles($twig, $vars)->getData()['users']
             ]);
 
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching user data: ' . $exception->getMessage();
 
             return new View('Error', ['message' => $errorMessage]);
+        }
+    }
+
+    public function getCommentsByUser(int $userId, array $articles, array $users): array
+    {
+        $url = "https://jsonplaceholder.typicode.com/comments?userId={$userId}";
+
+        try {
+            $response = $this->httpClient->get($url);
+            $body = $response->getBody()->getContents();
+            $data = json_decode($body, true);
+
+            $comments = [];
+            foreach ($data as $comment) {
+                $id = $comment['id'];
+                $postId = $comment['postId'];
+                $name = $comment['name'];
+                $body = $comment['body'];
+
+                $article = $articles[$postId] ?? null;
+                $user = $users[$userId] ?? null;
+
+                if ($article !== null && $user !== null) {
+                    $commentObject = new Comment($id, $postId, $name, $body, $article, $user);
+                    $comments[] = $commentObject;
+                }
+            }
+
+            return $comments;
+        } catch (GuzzleException $exception) {
+            return [];
         }
     }
 }

@@ -16,23 +16,23 @@
             <hr class="my-6 border-gray-300">
             <div class="mt-6">
                 <h2 class="text-xl font-bold mb-4">Articles by {{ author.name }}</h2>
-                    <ul class="space-y-4">
-                        {% for article in articles %}
-                            <li>
-                                <h3 class="text-lg">
-                                    <a href="/article/{{ article.id }}">{{ article.title | capitalize }}</a>
-                                </h3>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                <ul class="space-y-4">
+                    {% for article in articles %}
+                        <li>
+                            <h3 class="text-lg text-indigo-700">
+                                <a href="/article/{{ article.id }}">{{ article.title | capitalize }}</a>
+                            </h3>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
             <div class="mt-6">
                 <h2 class="text-xl font-bold mb-4">Comments by {{ author.name }}</h2>
                 <ul class="space-y-4">
-                    {% for article in articles %}
+                    {% for comment in comments %}
                         <li>
                             <h3 class="text-lg">
-                                <a href="/article/{{ article.id }}">{{ article.title | capitalize }}</a>
+                                {{ comment.name }}
                             </h3>
                         </li>
                     {% endfor %}
