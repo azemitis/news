@@ -31,22 +31,7 @@ class ArticleRepository
                 $data = json_decode($body, true);
 
                 // Fetch users
-                $userUrl = 'https://jsonplaceholder.typicode.com/users';
-                $userResponse = $this->httpClient->get($userUrl);
-                $userBody = $userResponse->getBody()->getContents();
-                $userData = json_decode($userBody, true);
-
-                // Create user objects
-                $users = [];
-                foreach ($userData as $userItem) {
-                    $userId = $userItem['id'];
-                    $userName = $userItem['name'];
-                    $userUsername = $userItem['username'];
-                    $userEmail = $userItem['email'];
-
-                    $userObject = new User($userId, $userName, $userUsername, $userEmail);
-                    $users[$userId] = $userObject;
-                }
+                $users = $this->getUsers();
 
                 // Create article objects
                 $articles = [];
