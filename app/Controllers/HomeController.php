@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Cache;
-use App\Controllers\RandomImage;
+use App\Utils\RandomImage;
 use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;

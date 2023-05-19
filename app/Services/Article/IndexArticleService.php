@@ -3,7 +3,7 @@
 namespace App\Services\Article;
 
 use App\Cache;
-use App\Controllers\RandomImage;
+use App\Utils\RandomImage;
 use App\Models\Article;
 use App\Models\User;
 use GuzzleHttp\Client;
