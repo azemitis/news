@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace App\Services\Article;
+namespace App\Repositories;
 
 use App\Cache;
 use App\Utils\RandomImage;

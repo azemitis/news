@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Services\Article;
 
@@ -10,6 +10,7 @@ use App\Models\User;
 use GuzzleHttp\Client;
 use Twig\Environment;
 use App\Views\View;
+use App\Services\Comments\CommentService;
 use App\Controllers\HomeController;
 
 class ShowArticleService
@@ -50,13 +51,15 @@ class ShowArticleService
                 $images = RandomImage::getRandomImages(1);
                 $image = $images[0];
 
+                $commentService = new CommentService($this->httpClient, $this->homeController);
+
                 // Check if there is a cached version of the comments
                 $commentsCacheKey = 'comments_' . $articleId;
                 if (Cache::has($commentsCacheKey)) {
                     $comments = Cache::get($commentsCacheKey);
                 } else {
-                    // Get comments for the article
-                    $comments = $this->homeController->getComments($articleId, $articles, $users);
+                    // Get comments for the article using the comment service
+                    $comments = $commentService->getComments($articleId, $articles, $users);
 
                     // Cache the comments
                     Cache::remember($commentsCacheKey, $comments, 20);
@@ -78,8 +81,11 @@ class ShowArticleService
             $images = RandomImage::getRandomImages(1);
             $image = $images[0];
 
-            // Get comments for the article
-            $comments = $this->homeController->getComments($articleId, $articles, $users);
+            // Create an instance of the CommentService
+            $commentService = new CommentService($this->httpClient, $this->homeController);
+
+            // Get comments for the article using the comment service
+            $comments = $commentService->getComments($articleId, $articles, $users);
 
             // Render Twig template
             return new View('article', [
