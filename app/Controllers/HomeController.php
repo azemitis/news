@@ -69,7 +69,7 @@ class HomeController
             if (Cache::has($cacheKey)) {
                 $cachedArticle = Cache::get($cacheKey);
                 $article = $cachedArticle;
-                var_dump("Cached article (ID: $articleId) used.");
+//                var_dump("Cached article (ID: $articleId) used.");
             } else {
                 // Get random images
                 $images = RandomImage::getRandomImages(1);
@@ -79,25 +79,23 @@ class HomeController
                 $commentsCacheKey = 'comments_' . $articleId;
                 if (Cache::has($commentsCacheKey)) {
                     $comments = Cache::get($commentsCacheKey);
-                    var_dump("Cached comments for article (ID: $articleId) used.");
+//                    var_dump("Cached comments for article (ID: $articleId) used.");
                 } else {
                     // Get comments for the article
                     $comments = $this->getComments($articleId, $articles, $users);
 
                     // Cache the comments
                     Cache::remember($commentsCacheKey, $comments, 20);
-                    var_dump("API request made for comments of article (ID: $articleId).");
+//                    var_dump("API request made for comments of article (ID: $articleId).");
                 }
 
-                // Render Twig template
+                // Cache the article
                 $viewData = [
                     'article' => $article,
                     'image' => $image,
                     'comments' => $comments,
                     'users' => $users
                 ];
-
-                // Cache the article
                 Cache::remember($cacheKey, $article, 20);
 
                 return new View('article', $viewData);
@@ -168,7 +166,7 @@ class HomeController
 
                 // Cache the comments
                 Cache::remember($cacheKey, $comments, 20);
-                var_dump("API request made for comments of article (ID: $articleId).");
+//                var_dump("API request made for comments of article (ID: $articleId).");
 
             } catch (GuzzleException $exception) {
                 $comments = [];
@@ -187,7 +185,7 @@ class HomeController
         if (Cache::has($cacheKey)) {
             $userObject = Cache::get($cacheKey);
             $users = [$userId => $userObject];
-            var_dump("Cached user (ID: $userId) used.");
+//            var_dump("Cached user (ID: $userId) used.");
         } else {
             try {
                 // Fetch user
