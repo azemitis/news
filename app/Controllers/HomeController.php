@@ -21,27 +21,13 @@ class HomeController
         $this->httpClient = $httpClient;
     }
 
-    public function articles(Environment $twig, array $vars): View
+    public function articles(): View
     {
         try {
-            // Fetch articles and users from the service class
-            $articleService = new IndexArticleService($this->httpClient);
-            $articleData = $articleService->execute();
-            $articles = $articleData['articles'];
-            $users = $articleData['users'];
-
-            // Get random images for each article
-            $images = RandomImage::getRandomImages(count($articles));
-
-            // Render Twig template
-            return new View('Articles', [
-                'articles' => $articles,
-                'images' => $images,
-                'users' => $users
-            ]);
+            $service = new IndexArticleService($this->httpClient);
+            return $service->articles();
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
-
             return new View('Error', ['message' => $errorMessage]);
         }
     }
@@ -205,7 +191,7 @@ class HomeController
                 Cache::remember($cacheKey, $userObject, 20);
 
                 $users = [$userId => $userObject];
-                var_dump("API request made for user (ID: $userId).");
+//                var_dump("API request made for user (ID: $userId).");
 
             } catch (GuzzleException $exception) {
                 $errorMessage = 'Error fetching user data: ' . $exception->getMessage();

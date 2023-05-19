@@ -1,11 +1,14 @@
 <?php
+
 namespace App\Services\Article;
 
 use App\Cache;
+use App\Controllers\RandomImage;
 use App\Models\Article;
 use App\Models\User;
-use App\Models\Comment;
 use GuzzleHttp\Client;
+use App\Views\View;
+
 
 class IndexArticleService
 {
@@ -16,7 +19,7 @@ class IndexArticleService
         $this->httpClient = $httpClient;
     }
 
-    public function execute(): array
+    public function articles(): View
     {
         try {
             // Fetch articles
@@ -31,7 +34,7 @@ class IndexArticleService
             $userBody = $userResponse->getBody()->getContents();
             $userData = json_decode($userBody, true);
 
-            // Create user objects and cache individually
+            // Create user objects
             $users = [];
             foreach ($userData as $userItem) {
                 $userId = $userItem['id'];
@@ -43,33 +46,37 @@ class IndexArticleService
                 $users[$userId] = $userObject;
             }
 
-            // Create article objects and cache individually
+            // Create article objects
             $articles = [];
+            $images = RandomImage::getRandomImages(count($data));
+            $imageIndex = 0;
+
             foreach ($data as $article) {
                 $id = $article['id'];
-                $cacheKey = 'article_' . $id;
+                $userId = $article['userId'];
+                $title = $article['title'];
+                $body = $article['body'];
 
-                if (Cache::has($cacheKey)) {
-                    $cachedArticle = Cache::get($cacheKey);
-                    $articles[$id] = $cachedArticle;
-                } else {
-                    $userId = $article['userId'];
-                    $title = $article['title'];
-                    $body = $article['body'];
+                // Get user of the article by ID
+                $user = $users[$userId];
 
-                    // Get user of the article by ID
-                    $user = $users[$userId];
+                // Get the next image from the random images list
+                $image = $images[$imageIndex];
+                $imageIndex++;
 
-                    $articleObject = new Article($userId, $id, $title, $body, $user);
-
-                    Cache::remember($cacheKey, $articleObject, 20);
-                    $articles[$id] = $articleObject;
-                }
+                $articleObject = new Article($userId, $id, $title, $body, $user, $image);
+                $articles[] = $articleObject;
             }
 
-            return ['articles' => $articles, 'users' => $users];
+            // Render Twig template
+            return new View('Articles', [
+                'articles' => $articles,
+                'images' => $images,
+                'users' => $users
+            ]);
         } catch (\Exception $exception) {
-            return ['error' => $exception->getMessage()];
+            $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
+            return new View('Error', ['message' => $errorMessage]);
         }
     }
 }
