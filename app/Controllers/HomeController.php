@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Cache;
+use App\Services\Article\ShowArticleService;
 use App\Utils\RandomImage;
 use App\Models\Article;
 use App\Models\Comment;
@@ -38,74 +39,10 @@ class HomeController
         $articleId = (int)$vars['id'];
 
         try {
-            // Fetch articles and users
-            $articlesData = $this->index($twig, $vars)->getData();
-            $articles = $articlesData['articles'];
-            $users = $articlesData['users'];
-
-            $article = null;
-            foreach ($articles as $item) {
-                if ($item->getId() == $articleId) {
-                    $article = $item;
-                    break;
-                }
-            }
-
-            // Check if there is a cached version of the article
-            $cacheKey = 'article_' . $articleId;
-            if (Cache::has($cacheKey)) {
-                $cachedArticle = Cache::get($cacheKey);
-                $article = $cachedArticle;
-//                var_dump("Cached article (ID: $articleId) used.");
-            } else {
-                // Get random images
-                $images = RandomImage::getRandomImages(1);
-                $image = $images[0];
-
-                // Check if there is a cached version of the comments
-                $commentsCacheKey = 'comments_' . $articleId;
-                if (Cache::has($commentsCacheKey)) {
-                    $comments = Cache::get($commentsCacheKey);
-//                    var_dump("Cached comments for article (ID: $articleId) used.");
-                } else {
-                    // Get comments for the article
-                    $comments = $this->getComments($articleId, $articles, $users);
-
-                    // Cache the comments
-                    Cache::remember($commentsCacheKey, $comments, 20);
-//                    var_dump("API request made for comments of article (ID: $articleId).");
-                }
-
-                // Cache the article
-                $viewData = [
-                    'article' => $article,
-                    'image' => $image,
-                    'comments' => $comments,
-                    'users' => $users
-                ];
-                Cache::remember($cacheKey, $article, 20);
-
-                return new View('article', $viewData);
-            }
-
-            // Get random images
-            $images = RandomImage::getRandomImages(1);
-            $image = $images[0];
-
-            // Get comments for the article
-            $comments = $this->getComments($articleId, $articles, $users);
-
-            // Render Twig template
-            return new View('article', [
-                'article' => $article,
-                'image' => $image,
-                'comments' => $comments,
-                'users' => $users
-            ]);
-
+            $service = new ShowArticleService($this->httpClient, $this);
+            return $service->show($twig, $articleId);
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
-
             return new View('Error', ['message' => $errorMessage]);
         }
     }
