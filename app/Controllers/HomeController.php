@@ -3,9 +3,10 @@
 namespace App\Controllers;
 
 use App\Cache;
+use App\Controllers\RandomImage;
 use App\Models\Article;
-use App\Models\User;
 use App\Models\Comment;
+use App\Models\User;
 use App\Services\Article\IndexArticleService;
 use App\Views\View;
 use GuzzleHttp\Client;
@@ -21,24 +22,24 @@ class HomeController
         $this->httpClient = $httpClient;
     }
 
-    public function articles(): View
+    public function index(): View
     {
         try {
             $service = new IndexArticleService($this->httpClient);
-            return $service->articles();
+            return $service->index();
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
             return new View('Error', ['message' => $errorMessage]);
         }
     }
 
-    public function article(Environment $twig, array $vars): View
+    public function show(Environment $twig, array $vars): View
     {
         $articleId = (int)$vars['id'];
 
         try {
             // Fetch articles and users
-            $articlesData = $this->articles($twig, $vars)->getData();
+            $articlesData = $this->index($twig, $vars)->getData();
             $articles = $articlesData['articles'];
             $users = $articlesData['users'];
 
@@ -115,7 +116,7 @@ class HomeController
 
         if (Cache::has($cacheKey)) {
             $comments = Cache::get($cacheKey);
-            var_dump("Cached comments for article (ID: $articleId) used.");
+//            var_dump("Cached comments for article (ID: $articleId) used.");
         } else {
             $url = "https://jsonplaceholder.typicode.com/comments?postId={$articleId}";
 

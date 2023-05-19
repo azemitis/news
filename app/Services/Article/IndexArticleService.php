@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Services\Article;
 
@@ -9,7 +9,6 @@ use App\Models\User;
 use GuzzleHttp\Client;
 use App\Views\View;
 
-
 class IndexArticleService
 {
     private Client $httpClient;
@@ -19,53 +18,79 @@ class IndexArticleService
         $this->httpClient = $httpClient;
     }
 
-    public function articles(): View
+    public function index(): View
     {
         try {
-            // Fetch articles
-            $url = 'https://jsonplaceholder.typicode.com/posts';
-            $response = $this->httpClient->get($url);
-            $body = $response->getBody()->getContents();
-            $data = json_decode($body, true);
+            // Check if articles are cached
+            $cacheKey = 'articles';
+            if (Cache::has($cacheKey)) {
+                $cachedData = Cache::get($cacheKey);
+                $articles = $cachedData['articles'];
+                $images = $cachedData['images'];
+                $users = $cachedData['users'];
+            } else {
+                // Fetch articles
+                $url = 'https://jsonplaceholder.typicode.com/posts';
+                $response = $this->httpClient->get($url);
+                $body = $response->getBody()->getContents();
+                $data = json_decode($body, true);
 
-            // Fetch users
-            $userUrl = 'https://jsonplaceholder.typicode.com/users';
-            $userResponse = $this->httpClient->get($userUrl);
-            $userBody = $userResponse->getBody()->getContents();
-            $userData = json_decode($userBody, true);
+                // Fetch users
+                $userUrl = 'https://jsonplaceholder.typicode.com/users';
+                $userResponse = $this->httpClient->get($userUrl);
+                $userBody = $userResponse->getBody()->getContents();
+                $userData = json_decode($userBody, true);
 
-            // Create user objects
-            $users = [];
-            foreach ($userData as $userItem) {
-                $userId = $userItem['id'];
-                $userName = $userItem['name'];
-                $userUsername = $userItem['username'];
-                $userEmail = $userItem['email'];
+                // Create user objects and cache individually
+                $users = [];
+                foreach ($userData as $userItem) {
+                    $userId = $userItem['id'];
+                    $userName = $userItem['name'];
+                    $userUsername = $userItem['username'];
+                    $userEmail = $userItem['email'];
 
-                $userObject = new User($userId, $userName, $userUsername, $userEmail);
-                $users[$userId] = $userObject;
-            }
+                    $userObject = new User($userId, $userName, $userUsername, $userEmail);
+                    $users[$userId] = $userObject;
+                }
 
-            // Create article objects
-            $articles = [];
-            $images = RandomImage::getRandomImages(count($data));
-            $imageIndex = 0;
+                // Create article objects and cache individually
+                $articles = [];
+                $images = RandomImage::getRandomImages(count($data));
+                $imageIndex = 0;
 
-            foreach ($data as $article) {
-                $id = $article['id'];
-                $userId = $article['userId'];
-                $title = $article['title'];
-                $body = $article['body'];
+                foreach ($data as $article) {
+                    $id = $article['id'];
+                    $cacheKey = 'article_' . $id;
 
-                // Get user of the article by ID
-                $user = $users[$userId];
+                    if (Cache::has($cacheKey)) {
+                        $cachedArticle = Cache::get($cacheKey);
+                        $articles[$id] = $cachedArticle;
+                    } else {
+                        $userId = $article['userId'];
+                        $title = $article['title'];
+                        $body = $article['body'];
 
-                // Get the next image from the random images list
-                $image = $images[$imageIndex];
-                $imageIndex++;
+                        // Get user of the article by ID
+                        $user = $users[$userId];
 
-                $articleObject = new Article($userId, $id, $title, $body, $user, $image);
-                $articles[] = $articleObject;
+                        // Get the next image from the random images list
+                        $image = $images[$imageIndex];
+                        $imageIndex++;
+
+                        $articleObject = new Article($userId, $id, $title, $body, $user, $image);
+
+                        Cache::remember($cacheKey, $articleObject, 20);
+                        $articles[$id] = $articleObject;
+                    }
+                }
+
+                // Cache the articles, images, and users
+                $cachedData = [
+                    'articles' => $articles,
+                    'images' => $images,
+                    'users' => $users
+                ];
+                Cache::remember($cacheKey, $cachedData, 20);
             }
 
             // Render Twig template
