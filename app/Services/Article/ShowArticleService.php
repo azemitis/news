@@ -58,10 +58,9 @@ class ShowArticleService
                 if (Cache::has($commentsCacheKey)) {
                     $comments = Cache::get($commentsCacheKey);
                 } else {
-                    // Get comments for the article using the comment service
                     $comments = $commentService->getComments($articleId, $articles, $users);
 
-                    // Cache the comments
+                    // Cache comments
                     Cache::remember($commentsCacheKey, $comments, 20);
                 }
 
@@ -81,10 +80,8 @@ class ShowArticleService
             $images = RandomImage::getRandomImages(1);
             $image = $images[0];
 
-            // Create an instance of the CommentService
+            // Create instance of CommentService
             $commentService = new CommentService($this->httpClient, $this->homeController);
-
-            // Get comments for the article using the comment service
             $comments = $commentService->getComments($articleId, $articles, $users);
 
             // Render Twig template

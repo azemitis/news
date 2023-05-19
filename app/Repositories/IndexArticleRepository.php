@@ -34,7 +34,6 @@ class IndexArticleRepository
 
             $articleObject = new Article($userId, $id, $title, $body, $userId);
 
-            // Add the Article object to the array
             $articles[] = $articleObject;
         }
 
