@@ -3,15 +3,21 @@
 namespace App\Services\Article;
 
 use App\Repositories\IndexArticleRepository;
+use App\Repositories\LocalArticleRepository;
 use App\Views\View;
+use PDO;
 
 class IndexArticleService
 {
-    private IndexArticleRepository $articleRepository;
+    private $articleRepository;
 
-    public function __construct()
+    public function __construct($repository = null)
     {
-        $this->articleRepository = new IndexArticleRepository();
+        if ($repository instanceof IndexArticleRepository || $repository instanceof LocalArticleRepository) {
+            $this->articleRepository = $repository;
+        } else {
+            $this->articleRepository = new IndexArticleRepository();
+        }
     }
 
     public function index(): View
