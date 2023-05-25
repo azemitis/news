@@ -2,16 +2,16 @@
 
 namespace App\Services\Article;
 
-use App\Repositories\ArticleRepository;
+use App\Repositories\IndexArticleRepository;
 use App\Views\View;
 
 class IndexArticleService
 {
-    private ArticleRepository $articleRepository;
+    private IndexArticleRepository $articleRepository;
 
     public function __construct()
     {
-        $this->articleRepository = new ArticleRepository();
+        $this->articleRepository = new IndexArticleRepository();
     }
 
     public function index(): View
