@@ -32,7 +32,7 @@ class IndexArticleRepository
             $title = $article['title'];
             $body = $article['body'];
 
-            $articleObject = new Article($userId, $id, $title, $body, $userId);
+            $articleObject = new Article($id, $userId, $title, $body, $userId);
 
             $articles[] = $articleObject;
         }

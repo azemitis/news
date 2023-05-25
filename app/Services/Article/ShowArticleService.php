@@ -3,6 +3,7 @@
 namespace App\Services\Article;
 
 use App\Cache;
+use App\Repositories\ArticleRepository;
 use App\Utils\RandomImage;
 use App\Models\Article;
 use App\Models\Comment;
@@ -17,6 +18,7 @@ class ShowArticleService
 {
     private Client $httpClient;
     private HomeController $homeController;
+    private ArticleRepository $articleRepository;
 
     public function __construct(Client $httpClient, HomeController $homeController)
     {
