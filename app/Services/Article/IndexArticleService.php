@@ -19,7 +19,7 @@ class IndexArticleService
     public function index(): View
     {
         try {
-            $articlesData = $this->articleRepository->fetchArticlesData();
+            $articlesData = $this->articleRepository->all();
             $articles = $articlesData['articles'];
             $images = $articlesData['images'];
             $users = $articlesData['users'];

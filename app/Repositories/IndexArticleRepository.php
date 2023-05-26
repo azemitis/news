@@ -8,7 +8,8 @@ use App\Models\Article;
 use App\Models\User;
 use GuzzleHttp\Client;
 
-class IndexArticleRepository
+class IndexArticleRepository implements ArticleRepositoryInterface
+
 {
     private Client $httpClient;
     private const API_URL = 'https://jsonplaceholder.typicode.com';
@@ -18,7 +19,7 @@ class IndexArticleRepository
         $this->httpClient = new Client();
     }
 
-    public function fetchArticlesData(): array
+    public function all(): array
     {
         $cacheKey = 'articles';
 
@@ -82,5 +83,30 @@ class IndexArticleRepository
         Cache::remember($cacheKey, $cachedData, 20);
 
         return $cachedData;
+    }
+
+    public function getById(int $id): ?Article
+    {
+        return null;
+    }
+
+    public function getByUserId(int $userId): array
+    {
+        $userResponse = $this->httpClient->get(self::API_URL . '/users');
+        $userBody = $userResponse->getBody()->getContents();
+        $userData = json_decode($userBody, true);
+
+        $users = [];
+        foreach ($userData as $userItem) {
+            $userId = $userItem['id'];
+            $userName = $userItem['name'];
+            $userUsername = $userItem['username'];
+            $userEmail = $userItem['email'];
+
+            $userObject = new User($userId, $userName, $userUsername, $userEmail);
+            $users[$userId] = $userObject;
+        }
+
+        return $this->all($users);
     }
 }
