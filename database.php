@@ -13,3 +13,7 @@ try {
 } catch (PDOException $e) {
     die('Database connection failed: ' . $e->getMessage());
 }
+
+$articleService = new IndexArticleService($pdo);
+
+$view = $articleService->index();

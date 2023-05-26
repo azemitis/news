@@ -11,6 +11,8 @@
         "twig/twig": "^3.0",
         "nesbot/carbon": "^2.66",
         "ext-json": "^7.4",
-        "intervention/image": "^2.7"
+        "intervention/image": "^2.7",
+        "doctrine/dbal": "^3.2",
+        "php-di/php-di": "^6.4"
     }
 }
