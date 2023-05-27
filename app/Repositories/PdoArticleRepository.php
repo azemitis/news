@@ -5,90 +5,69 @@ namespace App\Repositories;
 use App\Models\Article;
 use App\Models\User;
 use App\Utils\RandomImage;
-use mysqli;
+use Doctrine\DBAL\DriverManager;
 
 class PdoArticleRepository
+//    implements ArticleRepositoryInterface
+
 {
-    private mysqli $connection;
+    private \Doctrine\DBAL\Connection $connection;
 
     public function __construct()
     {
-        $this->connection = new mysqli(
-            'localhost',
-            'root',
-            'root',
-            'tvnet'
-        );
-        if ($this->connection->connect_errno) {
-            throw new \Exception('Failed to connect to MySQL: '
-                . $this->connection->connect_error);
-        }
+        $connectionParams = [
+            'dbname' => 'news',
+            'user' => 'root',
+            'password' => 'root',
+            'host' => 'localhost',
+            'driver' => 'pdo_mysql',
+        ];
+
+        $this->connection = DriverManager::getConnection($connectionParams);
     }
 
-    public function fetchArticlesData(): array
+    public function all(): array
     {
         try {
-            $query = "SELECT * FROM articles";
+            $query = "SELECT * FROM tvnet";
             $statement = $this->connection->query($query);
-            $articlesData = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $articlesData = $statement->fetchAll();
 
             $articles = [];
             $users = [];
+            $images = RandomImage::getRandomImages(count($articlesData));
 
-            foreach ($articlesData as $articleData) {
-                $userId = $articleData['user_id'];
-                $id = $articleData['id'];
+            foreach ($articlesData as $index => $articleData) {
+                $userId = intval($articleData['user_id']);
+                $id = intval($articleData['id']);
                 $title = $articleData['title'];
-                $body = $articleData['body'];
+                $body = $articleData['content'];
 
                 if (!isset($users[$userId])) {
                     $users[$userId] = $this->fetchUser($userId);
                 }
 
                 $user = $users[$userId];
+                $image = $images[$index];
 
-                $articles[$id] =
-                    new Article($userId, $id, $title, $body, $user);
-            }
+                $article = new Article($id, $userId, $title, $body, $user);
+                $article->setImage($image);
 
-            $images = RandomImage::getRandomImages(count($articles));
-            $imageIndex = 0;
-
-            foreach ($articles as $id => $article) {
-                $article->setImage($images[$imageIndex]);
-                $imageIndex++;
+                $articles[$id] = $article;
             }
 
             return [
                 'articles' => $articles,
-                'images' => $images,
                 'users' => $users,
+                'images' => $images,
             ];
-        } catch (\Exception $e) {
-            return [
-                'error' => $e->getMessage(),
-                'articles' => [],
-                'images' => [],
-                'users' => [],
-            ];
+        } catch (\Exception $exception) {
+            return [];
         }
     }
 
     private function fetchUser(int $userId): User
     {
-        $query = "SELECT * FROM users WHERE id = :userId";
-        $statement = $this->connection->prepare($query);
-        $statement->bindValue(':userId', $userId, PDO::PARAM_INT);
-        $statement->execute();
-        $userData = $statement->fetch(PDO::FETCH_ASSOC);
-
-        $user = new User(
-            $userData['id'],
-            $userData['name'],
-            $userData['username'],
-            $userData['email']
-        );
-
-        return $user;
+        return new User(0, '', '', '');
     }
 }

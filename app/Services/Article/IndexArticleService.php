@@ -12,8 +12,8 @@ class IndexArticleService
 
     public function __construct()
     {
-//        $this->articleRepository = new PdoArticleRepository();
-        $this->articleRepository = new IndexArticleRepository();
+        $this->articleRepository = new PdoArticleRepository();
+//        $this->articleRepository = new IndexArticleRepository();
     }
 
     public function index(): View

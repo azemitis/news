@@ -9,14 +9,16 @@ class Article
     private string $title;
     private string $body;
     private User $user;
+    private ?string $image;
 
-    public function __construct(int $id, int $userId, string $title, string $body, User $user)
+    public function __construct(int $id, int $userId, string $title, string $body, User $user, ?string $image = null)
     {
         $this->id = $id;
         $this->userId = $userId;
         $this->title = $title;
         $this->body = $body;
         $this->user = $user;
+        $this->image = $image;
     }
 
     public function getUserId(): int
@@ -47,5 +49,15 @@ class Article
     public function setUser(User $user): User
     {
         $this->user = $user;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): void
+    {
+        $this->image = $image;
     }
 }
