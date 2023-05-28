@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 namespace App\Repositories;
 
@@ -9,7 +9,6 @@ use Doctrine\DBAL\DriverManager;
 
 class PdoArticleRepository
 //    implements ArticleRepositoryInterface
-
 {
     private \Doctrine\DBAL\Connection $connection;
 
@@ -37,15 +36,16 @@ class PdoArticleRepository
             $users = [];
             $images = RandomImage::getRandomImages(count($articlesData));
 
+            $userData = $this->getByUserId();
+            foreach ($userData as $user) {
+                $users[$user['id']] = new User($user['id'], $user['username'], $user['email'], $user['password']);
+            }
+
             foreach ($articlesData as $index => $articleData) {
                 $userId = intval($articleData['user_id']);
                 $id = intval($articleData['id']);
                 $title = $articleData['title'];
                 $body = $articleData['content'];
-
-                if (!isset($users[$userId])) {
-                    $users[$userId] = $this->getByUserId($userId);
-                }
 
                 $user = $users[$userId];
                 $image = $images[$index];
@@ -66,13 +66,16 @@ class PdoArticleRepository
         }
     }
 
+
     public function getById(int $id): ?Article
     {
         return null;
     }
 
-    private function getByUserId(int $userId): User
+    private function getByUserId(): array
     {
-        return new User(0, '', '', '');
+        $query = "SELECT * FROM users";
+        $statement = $this->connection->query($query);
+        return $statement->fetchAll();
     }
 }

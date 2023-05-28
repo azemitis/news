@@ -8,7 +8,7 @@ class RandomImage
     {
         $images = [];
 
-        $sizes = ['400x400', '300x400', '400x300'];
+        $sizes = ['400x300', '300x200', '400x300'];
         $colors = ['orange', 'cyan', 'green'];
         $texts = ['Hello from Riga', 'Hello from Latvia', 'Hello from Europe'];
 
