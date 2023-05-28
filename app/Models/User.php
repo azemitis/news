@@ -44,11 +44,13 @@ class User
         return $this->password;
     }
 
-    public function setPassword(?string $password): bool
+    public function setPassword(?string $password): void
     {
-        if ($this->password === null) {
-            return false;
-        }
+        $this->password = $password;
+    }
+
+    public function verifyPassword(string $password): bool
+    {
         return password_verify($password, $this->password);
     }
 }

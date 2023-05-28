@@ -55,4 +55,13 @@ class HomeController
             return new View('Error', ['message' => $errorMessage]);
         }
     }
+    public function register()
+    {
+        return new View('Registration', ['message' => 'message']);
+    }
+
+    public function login()
+    {
+        return new View('Login', ['message' => 'message']);
+    }
 }

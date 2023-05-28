@@ -66,7 +66,6 @@ class PdoArticleRepository
         }
     }
 
-
     public function getById(int $id): ?Article
     {
         return null;
