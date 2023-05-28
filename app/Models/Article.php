@@ -49,6 +49,7 @@ class Article
     public function setUser(User $user): User
     {
         $this->user = $user;
+        return $this->user;
     }
 
     public function getImage(): ?string

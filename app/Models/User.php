@@ -8,14 +8,15 @@ class User
     private string $name;
     private string $username;
     private string $email;
+    private ?string $password;
 
-    public function __construct(int $id, string $name, string $username, string $email)
+    public function __construct(int $id, string $name, string $username, string $email, ?string $password = null)
     {
-
         $this->id = $id;
         $this->name = $name;
         $this->username = $username;
         $this->email = $email;
+        $this->password = $password;
     }
 
     public function getId(): int
@@ -36,5 +37,18 @@ class User
     public function getEmail(): string
     {
         return $this->email;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(?string $password): bool
+    {
+        if ($this->password === null) {
+            return false;
+        }
+        return password_verify($password, $this->password);
     }
 }

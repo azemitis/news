@@ -44,7 +44,7 @@ class PdoArticleRepository
                 $body = $articleData['content'];
 
                 if (!isset($users[$userId])) {
-                    $users[$userId] = $this->fetchUser($userId);
+                    $users[$userId] = $this->getByUserId($userId);
                 }
 
                 $user = $users[$userId];
@@ -61,12 +61,17 @@ class PdoArticleRepository
                 'users' => $users,
                 'images' => $images,
             ];
-        } catch (\Exception $exception) {
+        } catch (\Exception $e) {
             return [];
         }
     }
 
-    private function fetchUser(int $userId): User
+    public function getById(int $id): ?Article
+    {
+        return null;
+    }
+
+    private function getByUserId(int $userId): User
     {
         return new User(0, '', '', '');
     }
