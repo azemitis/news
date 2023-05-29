@@ -3,27 +3,28 @@
 namespace App\Services\User;
 
 use App\Cache;
-use App\Controllers\HomeController;
 use App\Models\Article;
-use App\Models\Comment;
 use App\Models\User;
 use App\Services\Comments\CommentService;
-use GuzzleHttp\Client;
 use App\Views\View;
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Twig\Environment;
 
 class UserService
 {
     private Client $httpClient;
-    private HomeController $homeController;
 
-    public function __construct(Client $httpClient, HomeController $homeController)
+    private CommentService $commentService;
+
+    public function __construct(Client $httpClient, CommentService $commentService)
     {
         $this->httpClient = $httpClient;
-        $this->homeController = $homeController;
+        $this->commentService = $commentService;
     }
 
-    public function user(int $userId): View
+    public function user(int $userId): array
+
     {
         // Check if the user object is cached
         $cacheKey = 'user_' . $userId;
@@ -53,7 +54,7 @@ class UserService
             } catch (GuzzleException $exception) {
                 $errorMessage = 'Error fetching user data: ' . $exception->getMessage();
 
-                return new View('Error', ['message' => $errorMessage]);
+                return ['error' => $errorMessage];
             }
         }
 
@@ -77,15 +78,14 @@ class UserService
         }
 
         // Fetch comments for the user
-        $commentService = new CommentService($this->httpClient, $this->homeController);
-        $comments = $commentService->getCommentsByUser($userId, $articles, $users);
+        $commentService = new CommentService($this->httpClient);
+        $comments = $this->commentService->getCommentsByUser($userId, $articles, $users);
 
-        // Render Twig template
-        return new View('User', [
+        return [
             'author' => $userObject,
             'articles' => $articles,
             'comments' => $comments,
             'users' => $users
-        ]);
+        ];
     }
 }

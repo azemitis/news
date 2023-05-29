@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Services\Article\ShowArticleService;
+use App\Services\Comments\CommentService;
 use App\Services\User\UserService;
 use App\Services\Article\IndexArticleService;
 use App\Views\View;
@@ -45,16 +46,21 @@ class HomeController
 
     public function user(Environment $twig, array $vars): View
     {
-        $userId = (int)$vars['id'];
+        $userId = (int) $vars['id'];
 
         try {
-            $userService = new UserService($this->httpClient, $this);
-            return $userService->user($userId);
+            $commentService = new CommentService($this->httpClient, $twig);
+            $userService = new UserService($this->httpClient, $commentService);
+
+            $view = $userService->user($userId);
+
+            return new View('User', $view);
         } catch (GuzzleException $exception) {
             $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
             return new View('Error', ['message' => $errorMessage]);
         }
     }
+
     public function register()
     {
         return new View('Registration', ['message' => 'message']);

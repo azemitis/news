@@ -6,19 +6,16 @@ use App\Cache;
 use App\Models\Article;
 use App\Models\Comment;
 use App\Models\User;
-use App\Controllers\HomeController;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 class CommentService
 {
     private $httpClient;
-    private $homeController;
 
-    public function __construct($httpClient, $homeController)
+    public function __construct($httpClient)
     {
         $this->httpClient = $httpClient;
-        $this->homeController = $homeController;
     }
 
     public function getComments(int $articleId, array $articles, array $users): array

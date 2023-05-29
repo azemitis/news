@@ -8,5 +8,12 @@ class LoginService
 {
     public function login(string $username, string $password)
     {
+        $user = User::findByUsername($username);
+
+        if ($user && $user->verifyPassword($password)) {
+            return true;
+        }
+
+        return false;
     }
 }
