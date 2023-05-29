@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Repositories\UserRepository;
 use App\Views\View;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 
 class RegistrationService
 {
@@ -16,23 +17,8 @@ class RegistrationService
         $this->httpClient = $httpClient;
     }
 
-    public function index()
+    public function index(): View
     {
         return new View('Registration', ['message' => 'message']);
-
-    }
-
-    public function register(string $username, string $email, string $password): bool
-    {
-        if ($this->userRepository->findByUsername($username) || $this->userRepository->findByEmail($email)) {
-            return false;
-        }
-
-        $user = new User(0, $username, $email, '');
-        $user->setPassword(password_hash($password, PASSWORD_DEFAULT));
-
-        $this->userRepository->save($user);
-
-        return true;
     }
 }
