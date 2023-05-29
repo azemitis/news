@@ -7,6 +7,7 @@ use App\Models\Article;
 use App\Models\User;
 use App\Services\Comments\CommentService;
 use App\Views\View;
+use Doctrine\DBAL\Connection;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Twig\Environment;
@@ -16,7 +17,7 @@ class UserService
 {
     private Client $httpClient;
     private CommentService $commentService;
-    private \Doctrine\DBAL\Connection $connection;
+    private Connection $connection;
 
     public function __construct(Client $httpClient, CommentService $commentService)
     {
@@ -36,20 +37,16 @@ class UserService
 
     public function user(int $userId): array
     {
-        // Check if the user object is cached
         $cacheKey = 'user_' . $userId;
         if (Cache::has($cacheKey)) {
             $userObject = Cache::get($cacheKey);
             $users = [$userId => $userObject];
         } else {
             try {
-                // Fetch user from local database
                 $userData = $this->getByUserId($userId);
 
-                // Create user object
                 $userObject = new User($userId, $userData['username'], $userData['email'], $userData['password']);
 
-                // Cache the user object
                 Cache::remember($cacheKey, $userObject, 20);
 
                 $users = [$userId => $userObject];
@@ -61,13 +58,11 @@ class UserService
             }
         }
 
-        // Fetch articles
         $url = 'https://jsonplaceholder.typicode.com/posts';
         $response = $this->httpClient->get($url);
         $body = $response->getBody()->getContents();
         $data = json_decode($body, true);
 
-        // Create article objects for the user
         $articles = [];
         foreach ($data as $article) {
             if ($article['userId'] === $userId) {
@@ -80,7 +75,6 @@ class UserService
             }
         }
 
-        // Fetch comments for the user
         $comments = $this->commentService->getCommentsByUser($userId, $articles, $users);
 
         return [
@@ -98,7 +92,4 @@ class UserService
 
         return $statement->fetchAssociative() ?: null;
     }
-
-
-
 }
