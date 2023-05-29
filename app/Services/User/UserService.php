@@ -10,22 +10,34 @@ use App\Views\View;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Twig\Environment;
+use Doctrine\DBAL\DriverManager;
 
 class UserService
 {
     private Client $httpClient;
-
     private CommentService $commentService;
+    private \Doctrine\DBAL\Connection $connection;
 
     public function __construct(Client $httpClient, CommentService $commentService)
     {
         $this->httpClient = $httpClient;
         $this->commentService = $commentService;
+
+        $connectionParams = [
+            'dbname' => 'news',
+            'user' => 'root',
+            'password' => 'root',
+            'host' => 'localhost',
+            'driver' => 'pdo_mysql',
+        ];
+
+        $this->connection = DriverManager::getConnection($connectionParams);
     }
 
     public function user(int $userId): array
-
     {
+        var_dump('Inside user() method'); // Add this line
+
         // Check if the user object is cached
         $cacheKey = 'user_' . $userId;
         if (Cache::has($cacheKey)) {
@@ -33,25 +45,20 @@ class UserService
             $users = [$userId => $userObject];
         } else {
             try {
-                // Fetch user
-                $userUrl = "https://jsonplaceholder.typicode.com/users/{$userId}";
-                $userResponse = $this->httpClient->get($userUrl);
-                $userBody = $userResponse->getBody()->getContents();
-                $userData = json_decode($userBody, true);
+                // Fetch user from local database
+                $userData = $this->getByUserId($userId);
+                var_dump($userData); // Dump user data to check
 
                 // Create user object
-                $userName = $userData['name'];
-                $userUsername = $userData['username'];
-                $userEmail = $userData['email'];
-
-                $userObject = new User($userId, $userName, $userUsername, $userEmail);
+                $userObject = new User($userId, $userData['username'], $userData['email'], $userData['password']);
+                var_dump($userObject); // Dump user object to check
 
                 // Cache the user object
                 Cache::remember($cacheKey, $userObject, 20);
 
                 $users = [$userId => $userObject];
 
-            } catch (GuzzleException $exception) {
+            } catch (\Exception $exception) {
                 $errorMessage = 'Error fetching user data: ' . $exception->getMessage();
 
                 return ['error' => $errorMessage];
@@ -78,7 +85,6 @@ class UserService
         }
 
         // Fetch comments for the user
-        $commentService = new CommentService($this->httpClient);
         $comments = $this->commentService->getCommentsByUser($userId, $articles, $users);
 
         return [
@@ -88,4 +94,15 @@ class UserService
             'users' => $users
         ];
     }
+
+    private function getByUserId(int $userId): ?array
+    {
+        $query = "SELECT * FROM users WHERE id = ?";
+        $statement = $this->connection->executeQuery($query, [$userId]);
+
+        return $statement->fetchAssociative() ?: null;
+    }
+
+
+
 }
