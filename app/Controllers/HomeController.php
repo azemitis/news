@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Services\Article\ShowArticleService;
 use App\Services\Comments\CommentService;
+use App\Services\User\RegistrationService;
 use App\Services\User\UserService;
 use App\Services\Article\IndexArticleService;
 use App\Views\View;
@@ -61,9 +62,15 @@ class HomeController
         }
     }
 
-    public function register()
+    public function register(): View
     {
-        return new View('Registration', ['message' => 'message']);
+        try {
+            $service = new RegistrationService($this->httpClient);
+            return $service->index();
+        } catch (GuzzleException $exception) {
+            $errorMessage = 'Error fetching article data: ' . $exception->getMessage();
+            return new View('Error', ['message' => $errorMessage]);
+        }
     }
 
     public function login()

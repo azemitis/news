@@ -6,7 +6,6 @@ use App\Cache;
 use App\Models\Article;
 use App\Models\User;
 use App\Services\Comments\CommentService;
-use App\Views\View;
 use Doctrine\DBAL\Connection;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
