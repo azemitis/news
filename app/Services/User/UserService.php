@@ -36,8 +36,6 @@ class UserService
 
     public function user(int $userId): array
     {
-        var_dump('Inside user() method'); // Add this line
-
         // Check if the user object is cached
         $cacheKey = 'user_' . $userId;
         if (Cache::has($cacheKey)) {
@@ -47,11 +45,9 @@ class UserService
             try {
                 // Fetch user from local database
                 $userData = $this->getByUserId($userId);
-                var_dump($userData); // Dump user data to check
 
                 // Create user object
                 $userObject = new User($userId, $userData['username'], $userData['email'], $userData['password']);
-                var_dump($userObject); // Dump user object to check
 
                 // Cache the user object
                 Cache::remember($cacheKey, $userObject, 20);
